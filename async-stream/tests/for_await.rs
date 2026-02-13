@@ -1,3 +1,5 @@
+use std::pin::pin;
+
 use async_stream::stream;
 
 use futures_util::stream::StreamExt;
@@ -14,6 +16,7 @@ async fn test() {
             yield x.to_owned() + "!";
         }
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
 

@@ -25,20 +25,19 @@
 //! keyword. The stream block must return `()`.
 //!
 //! ```rust
+//! use std::pin::pin;
+//!
 //! use async_stream::stream;
 //!
-//! use futures_util::pin_mut;
 //! use futures_util::stream::StreamExt;
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let s = stream! {
+//!     let mut s = pin!(stream! {
 //!         for i in 0..3 {
 //!             yield i;
 //!         }
-//!     };
-//!
-//!     pin_mut!(s); // needed for iteration
+//!     });
 //!
 //!     while let Some(value) = s.next().await {
 //!         println!("got {}", value);
@@ -49,10 +48,11 @@
 //! Streams may be returned by using `impl Stream<Item = T>`:
 //!
 //! ```rust
+//! use std::pin::pin;
+//!
 //! use async_stream::stream;
 //!
 //! use futures_core::stream::Stream;
-//! use futures_util::pin_mut;
 //! use futures_util::stream::StreamExt;
 //!
 //! fn zero_to_three() -> impl Stream<Item = u32> {
@@ -65,8 +65,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let s = zero_to_three();
-//!     pin_mut!(s); // needed for iteration
+//!     let mut s = pin!(zero_to_three());
 //!
 //!     while let Some(value) = s.next().await {
 //!         println!("got {}", value);
@@ -78,10 +77,11 @@
 //! syntax to assist with this:
 //!
 //! ```rust
+//! use std::pin::pin;
+//!
 //! use async_stream::stream;
 //!
 //! use futures_core::stream::Stream;
-//! use futures_util::pin_mut;
 //! use futures_util::stream::StreamExt;
 //!
 //! fn zero_to_three() -> impl Stream<Item = u32> {
@@ -104,8 +104,7 @@
 //!
 //! #[tokio::main]
 //! async fn main() {
-//!     let s = double(zero_to_three());
-//!     pin_mut!(s); // needed for iteration
+//!     let mut s = pin!(double(zero_to_three()));
 //!
 //!     while let Some(value) = s.next().await {
 //!         println!("got {}", value);
@@ -167,20 +166,19 @@ mod yielder;
 /// # Examples
 ///
 /// ```
+/// use std::pin::pin;
+///
 /// use async_stream::stream;
 ///
-/// use futures_util::pin_mut;
 /// use futures_util::stream::StreamExt;
 ///
 /// #[tokio::main]
 /// async fn main() {
-///     let s = stream! {
+///     let mut s = pin!(stream! {
 ///         for i in 0..3 {
 ///             yield i;
 ///         }
-///     };
-///
-///     pin_mut!(s); // needed for iteration
+///     });
 ///
 ///     while let Some(value) = s.next().await {
 ///         println!("got {}", value);

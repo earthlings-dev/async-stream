@@ -6,3 +6,33 @@ members = [
     "async-stream/tests/reexporter",
     "async-stream/tests/test-reexport",
 ]
+
+[workspace.package]
+edition = "2024"
+rust-version = "1.93"
+license = "MIT"
+repository = "https://github.com/tokio-rs/async-stream"
+
+[workspace.dependencies]
+# In-repo crates
+async-stream = { version = "0.3.6", path = "async-stream" }
+async-stream-impl = { version = "=0.3.6", path = "async-stream-impl" }
+reexporter = { version = "0.0.0", path = "async-stream/tests/reexporter" }
+
+# External dependencies
+futures-core = "1.0.0-alpha.0"
+futures-util = "0.4.0-alpha.0"
+pin-project-lite = "0.2"
+proc-macro2 = "1.0.106"
+quote = "1"
+rustversion = "1"
+syn = { version = "2.0.115", features = ["full", "visit-mut"] }
+tokio = { version = "1", default-features = false }
+tokio-test = "0.4"
+trybuild = "1"
+
+[patch.crates-io]
+futures-core = { git = "https://github.com/earthlings-dev/futures-rs.git" }
+futures-util = { git = "https://github.com/earthlings-dev/futures-rs.git" }
+tokio = { git = "https://github.com/earthlings-dev/tokio.git" }
+tokio-test = { git = "https://github.com/earthlings-dev/tokio.git" }

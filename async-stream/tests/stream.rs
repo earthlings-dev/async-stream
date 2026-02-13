@@ -1,19 +1,17 @@
+use std::pin::pin;
+
 use async_stream::stream;
 
 use futures_core::stream::{FusedStream, Stream};
-use futures_util::pin_mut;
 use futures_util::stream::StreamExt;
 use tokio::sync::mpsc;
 use tokio_test::assert_ok;
 
 #[tokio::test]
 async fn noop_stream() {
-    let s = stream! {};
-    pin_mut!(s);
+    let mut s = pin!(stream! {});
 
-    while s.next().await.is_some() {
-        unreachable!();
-    }
+    assert!(s.next().await.is_none());
 }
 
 #[tokio::test]
@@ -22,15 +20,12 @@ async fn empty_stream() {
 
     {
         let r = &mut ran;
-        let s = stream! {
+        let mut s = pin!(stream! {
             *r = true;
             println!("hello world!");
-        };
-        pin_mut!(s);
+        });
 
-        while s.next().await.is_some() {
-            unreachable!();
-        }
+        assert!(s.next().await.is_none());
     }
 
     assert!(ran);
@@ -41,6 +36,7 @@ async fn yield_single_value() {
     let s = stream! {
         yield "hello";
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
 
@@ -50,10 +46,9 @@ async fn yield_single_value() {
 
 #[tokio::test]
 async fn fused() {
-    let s = stream! {
+    let mut s = pin!(stream! {
         yield "hello";
-    };
-    pin_mut!(s);
+    });
 
     assert!(!s.is_terminated());
     assert_eq!(s.next().await, Some("hello"));
@@ -71,6 +66,7 @@ async fn yield_multi_value() {
         yield "world";
         yield "dizzy";
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
 
@@ -92,6 +88,7 @@ async fn unit_yield_in_select() {
             else => yield,
         }
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
     assert_eq!(values.len(), 1);
@@ -111,6 +108,7 @@ async fn yield_with_select() {
             else => yield "hey",
         }
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
     assert_eq!(values, vec!["hey"]);
@@ -126,7 +124,7 @@ async fn return_stream() {
         }
     }
 
-    let s = build_stream();
+    let s = pin!(build_stream());
 
     let values: Vec<_> = s.collect().await;
     assert_eq!(3, values.len());
@@ -139,13 +137,11 @@ async fn return_stream() {
 async fn consume_channel() {
     let (tx, mut rx) = mpsc::channel(10);
 
-    let s = stream! {
+    let mut s = pin!(stream! {
         while let Some(v) = rx.recv().await {
             yield v;
         }
-    };
-
-    pin_mut!(s);
+    });
 
     for i in 0..3 {
         assert_ok!(tx.send(i).await);
@@ -169,8 +165,7 @@ async fn borrow_self() {
     }
 
     let data = Data("hello".to_string());
-    let s = data.stream();
-    pin_mut!(s);
+    let mut s = pin!(data.stream());
 
     assert_eq!(Some("hello"), s.next().await);
 }
@@ -184,11 +179,12 @@ async fn stream_in_stream() {
             }
         };
 
-        pin_mut!(s);
+        let mut s = std::pin::pin!(s);
         while let Some(v) = s.next().await {
             yield v;
         }
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
     assert_eq!(3, values.len());
@@ -196,14 +192,13 @@ async fn stream_in_stream() {
 
 #[tokio::test]
 async fn yield_non_unpin_value() {
-    let s: Vec<_> = stream! {
+    let s = stream! {
         for i in 0..3 {
             yield async move { i };
         }
-    }
-    .buffered(1)
-    .collect()
-    .await;
+    };
+    let s = pin!(s);
+    let s: Vec<_> = s.buffered(1).collect().await;
 
     assert_eq!(s, vec![0, 1, 2]);
 }
@@ -218,10 +213,10 @@ fn inner_try_stream() {
     let _ = stream! {
         select! {
             _ = do_stuff_async() => {
-                let another_s = try_stream! {
+                let mut another_s = Box::pin(try_stream! {
                     yield;
-                };
-                let _: Result<(), ()> = Box::pin(another_s).next().await.unwrap();
+                });
+                let _: Result<(), ()> = another_s.next().await.unwrap();
             },
             else => {},
         }

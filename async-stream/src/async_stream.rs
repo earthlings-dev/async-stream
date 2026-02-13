@@ -70,10 +70,6 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        if self.done {
-            (0, Some(0))
-        } else {
-            (0, None)
-        }
+        if self.done { (0, Some(0)) } else { (0, None) }
     }
 }

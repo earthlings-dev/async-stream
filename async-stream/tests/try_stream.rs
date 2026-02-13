@@ -1,3 +1,5 @@
+use std::pin::pin;
+
 use async_stream::try_stream;
 
 use futures_core::stream::Stream;
@@ -14,6 +16,7 @@ async fn single_err() {
 
         unreachable!();
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
     assert_eq!(1, values.len());
@@ -27,6 +30,7 @@ async fn yield_then_err() {
         Err("world")?;
         unreachable!();
     };
+    let s = pin!(s);
 
     let values: Vec<_> = s.collect().await;
     assert_eq!(2, values.len());
@@ -56,7 +60,8 @@ async fn convert_err() {
         }
     }
 
-    let values: Vec<_> = test().collect().await;
+    let s = pin!(test());
+    let values: Vec<_> = s.collect().await;
     assert_eq!(1, values.len());
     assert_eq!(Err(ErrorB(1)), values[0]);
 }
@@ -71,10 +76,11 @@ async fn multi_try() {
             }
         }
     }
-    let values: Vec<_> = test().collect().await;
+    let s = pin!(test());
+    let values: Vec<_> = s.collect().await;
     assert_eq!(9, values.len());
     assert_eq!(
-        std::iter::repeat(123).take(9).map(Ok).collect::<Vec<_>>(),
+        std::iter::repeat_n(123, 9).map(Ok).collect::<Vec<_>>(),
         values
     );
 }

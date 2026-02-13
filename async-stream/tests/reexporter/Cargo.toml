@@ -1,9 +1,10 @@
 [package]
 name = "reexporter"
 version = "0.0.0"
+edition.workspace = true
+rust-version.workspace = true
 authors = []
-edition = "2021"
 publish = false
 
 [dependencies]
-async-stream = { path = "../.." }
+async-stream = { workspace = true }
