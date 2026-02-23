@@ -32,7 +32,7 @@ tokio-test = "0.4"
 trybuild = "1"
 
 [patch.crates-io]
-futures-core = { git = "https://github.com/earthlings-dev/futures-rs.git" }
-futures-util = { git = "https://github.com/earthlings-dev/futures-rs.git" }
-tokio = { git = "https://github.com/earthlings-dev/tokio.git" }
-tokio-test = { git = "https://github.com/earthlings-dev/tokio.git" }
+futures-core = { path = "../futures-rs/futures-core" }
+futures-util = { path = "../futures-rs/futures-util" }
+tokio = { path = "../tokio/tokio" }
+tokio-test = { path = "../tokio/tokio-test" }
